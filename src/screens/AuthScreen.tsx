@@ -13,7 +13,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { LANGUAGES } from '../constants/languages';
+import { LanguageCode, LANGUAGES } from '../constants/languages';
 
 export const AuthScreen = () => {
   const { signIn } = useAuth();
@@ -21,7 +21,8 @@ export const AuthScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [targetLanguage, setTargetLanguage] = useState(LANGUAGES[0].code);
+  const [targetLanguage, setTargetLanguage] = useState(LanguageCode.EN);
+  const [userLanguage, setUserLanguage] = useState(LanguageCode.RU);
 
   const handleSubmit = async () => {
     try {
@@ -29,7 +30,7 @@ export const AuthScreen = () => {
       if (isLogin) {
         response = await api.login(email, password);
       } else {
-        response = await api.register(email, password, username, targetLanguage);
+        response = await api.register(email, password, username, targetLanguage, userLanguage);
       }
       
       await signIn(response.access_token);
@@ -65,11 +66,26 @@ export const AuthScreen = () => {
                   selectedValue={targetLanguage}
                   onValueChange={(itemValue) => setTargetLanguage(itemValue)}
                   style={styles.picker}>
-                  {LANGUAGES.map((lang) => (
-                    <Picker.Item 
-                      key={lang.code} 
-                      label={lang.name} 
-                      value={lang.code} 
+                  {(Object.keys(LANGUAGES) as LanguageCode[]).map((lang) => (
+                    <Picker.Item
+                      key={lang}
+                      label={LANGUAGES[lang]}
+                      value={lang}
+                    />
+                  ))}
+                </Picker>
+              </View>
+              <View style={styles.pickerContainer}>
+                <Text style={styles.pickerLabel}>Select Your Language:</Text>
+                <Picker
+                  selectedValue={userLanguage}
+                  onValueChange={(itemValue) => setUserLanguage(itemValue)}
+                  style={styles.picker}>
+                  {(Object.keys(LANGUAGES) as LanguageCode[]).map((lang) => (
+                    <Picker.Item
+                      key={lang}
+                      label={LANGUAGES[lang]}
+                      value={lang}
                     />
                   ))}
                 </Picker>

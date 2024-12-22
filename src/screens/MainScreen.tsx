@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Tooltip from 'rn-tooltip';
 import { Audio } from 'expo-av';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
+import { TopicDto } from '../types/TopicDto';
 
 // Моковые данные для фраз
 const MOCK_PHRASES = [
@@ -47,20 +48,27 @@ const MOCK_PHRASES = [
   },
 ];
 
-// Добавим информацию о задании
-const SPEAKING_TASK = {
-  topic: "Daily Routine and Hobbies",
-  description: "Tell us about your typical day and what you like to do in your free time",
-  duration: 60, // длительность в секундах
-  minWords: 50,
-};
-
 export const MainScreen = () => {
   const { signOut } = useAuth();
   const [hasRecording, setHasRecording] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playingPhraseId, setPlayingPhraseId] = useState<string | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [topic, setTopic] = useState<TopicDto | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    api.getRandomTopic()
+      .then((topic) => {
+        console.log('Received topic:', topic);
+        setTopic(topic);
+      })
+      .catch((error) => {
+        console.error('Error fetching topic:', error);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const playPhrase = async (phraseId: string) => {
     // Если уже играет какой-то звук, останавливаем его
@@ -121,6 +129,22 @@ export const MainScreen = () => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!loading && !topic) {
+    return (
+      <View style={styles.container}>
+        <Text>Something went wrong...</Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -131,21 +155,25 @@ export const MainScreen = () => {
       </View>
 
       <View style={styles.taskContainer}>
-        <Text style={styles.taskTopic}>{SPEAKING_TASK.topic}</Text>
-        <Text style={styles.taskDescription}>{SPEAKING_TASK.description}</Text>
+        <Text style={styles.taskTopic}>{topic?.title}</Text>
+        <Text style={styles.taskDescription}>{topic?.description}</Text>
         <View style={styles.taskRequirements}>
-          <View style={styles.requirementItem}>
-            <Ionicons name="time-outline" size={20} color="#666" />
-            <Text style={styles.requirementText}>
-              Duration: {formatTime(SPEAKING_TASK.duration)}
-            </Text>
-          </View>
-          <View style={styles.requirementItem}>
-            <Ionicons name="text-outline" size={20} color="#666" />
-            <Text style={styles.requirementText}>
-              Min words: {SPEAKING_TASK.minWords}
-            </Text>
-          </View>
+          {topic?.min_duration && (
+            <View style={styles.requirementItem}>
+              <Ionicons name="time-outline" size={20} color="#666" />
+              <Text style={styles.requirementText}>
+                Duration: {formatTime(topic.min_duration)}
+              </Text>
+            </View>
+          )}
+          {topic?.min_words && (
+            <View style={styles.requirementItem}>
+              <Ionicons name="text-outline" size={20} color="#666" />
+              <Text style={styles.requirementText}>
+                Min words: {topic.min_words}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 

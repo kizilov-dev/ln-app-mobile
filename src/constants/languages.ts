@@ -1,11 +1,23 @@
-export const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'it', name: 'Italian' },
-  { code: 'ru', name: 'Russian' },
-  { code: 'zh', name: 'Chinese' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'ko', name: 'Korean' },
-]; 
+export enum LanguageCode {
+  EN = 'en',
+  ES = 'es',
+  FR = 'fr',
+  DE = 'de',
+  IT = 'it',
+  RU = 'ru',
+  ZH = 'zh',
+  JA = 'ja',
+  KO = 'ko',
+}
+
+export const LANGUAGES: Record<LanguageCode, string> = {
+  en: 'English',
+  es: 'Spanish',
+  fr: 'French',
+  de: 'German',
+  it: 'Italian',
+  ru: 'Russian',
+  zh: 'Chinese',
+  ja: 'Japanese',
+  ko: 'Korean',
+};
